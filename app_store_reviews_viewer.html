@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>App Store Reviews Viewer</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f7;
+      margin: 0;
+      padding: 24px;
+    }
+
+    h1 {
+      margin-bottom: 16px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    input {
+      padding: 8px 10px;
+      font-size: 14px;
+      width: 200px;
+    }
+
+    button {
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .status {
+      margin-bottom: 16px;
+      color: #555;
+    }
+
+    .review {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .stars {
+      color: #f5a623;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    .title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #777;
+      margin-bottom: 8px;
+    }
+
+    .content {
+      white-space: pre-wrap;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h1>App Store Reviews</h1>
+
+  <div class="controls">
+    <input id="appIdInput" type="text" placeholder="Enter App ID" />
+    <select id="countryInput">
+      <option value="us">United States</option>
+      <option value="dk">Denmark</option>
+      <option value="gb">United Kingdom</option>
+      <option value="de">Germany</option>
+      <option value="fr">France</option>
+      <option value="it">Italy</option>
+      <option value="es">Spain</option>
+      <option value="se">Sweden</option>
+      <option value="no">Norway</option>
+      <option value="nl">Netherlands</option>
+      <option value="jp">Japan</option>
+    </select>
+    <button id="fetchButton">Fetch Reviews</button>
+  </div>
+
+  <div id="status" class="status"></div>
+  <div id="reviews"></div>
+
+  <script>
+    const fetchButton = document.getElementById('fetchButton');
+    const appIdInput = document.getElementById('appIdInput');
+    const countryInput = document.getElementById('countryInput');
+    const reviewsContainer = document.getElementById('reviews');
+    const statusEl = document.getElementById('status');
+
+    fetchButton.addEventListener('click', () => {
+      const appId = appIdInput.value.trim();
+      const country = countryInput.value.trim() || 'us';
+      if (!appId) return;
+
+      reviewsContainer.innerHTML = '';
+      statusEl.textContent = 'Fetching reviews…';
+
+      fetchAllPages(appId, country);
+    });
+
+    async function fetchAllPages(appId, country) {
+      let allReviews = [];
+
+      for (let page = 1; page <= 10; page++) {
+        const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (!data.feed || !data.feed.entry) break;
+
+          let entries = data.feed.entry;
+
+          // Page 1 includes app metadata as the first entry; skip it
+          if (page === 1 && entries.length > 0) {
+            entries = entries.slice(1);
+          }
+
+          if (entries.length === 0) break;
+
+          allReviews.push(...entries);
+        } catch (error) {
+          console.error(error);
+          break;
+        }
+      }
+
+      statusEl.textContent = `Loaded ${allReviews.length} reviews`;
+      renderReviews(allReviews);
+    }
+
+    function renderReviews(reviews) {
+      reviews.forEach(review => {
+        const rating = Number(review['im:rating']?.label || 0);
+        const title = review.title?.label || '';
+        const content = review.content?.label || '';
+        const author = review.author?.name?.label || 'Unknown';
+        const version = review['im:version']?.label || '';
+
+        const reviewEl = document.createElement('div');
+        reviewEl.className = 'review';
+
+        reviewEl.innerHTML = `
+          <div class="review-header">
+            <div class="stars">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
+          </div>
+          <div class="title">${title}</div>
+          <div class="meta">By ${author} · Version ${version}</div>
+          <div class="content">${content}</div>
+        `;
+
+        reviewsContainer.appendChild(reviewEl);
+      });
+    }
+  </script>
+</body>
+</html>
