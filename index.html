@@ -6,214 +6,375 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    /* 1. Base Variables & Reset */
+    :root {
+      --bg-body: #f3f4f6;
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --border-radius: 12px;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
       margin: 0;
-      padding: 16px;
+      padding: 40px 20px;
+      line-height: 1.5;
     }
 
+    /* 2. Container - Centered and constrained */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* 3. Typography hierarchy */
     h1 {
-      margin-bottom: 16px;
-      font-size: 22px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin: 0 0 24px 0;
+      color: #1f2937;
     }
 
+    /* 4. Form Design - "Refactoring UI" style inputs */
     .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      margin-bottom: 32px;
+      background: var(--bg-card);
+      padding: 8px;
+      border-radius: 16px; /* Super rounded container */
+      box-shadow: var(--shadow-sm);
+      border: 1px solid #e5e7eb;
     }
 
     input, select, button {
-      padding: 10px 12px;
-      font-size: 15px;
-      border-radius: 6px;
-    }
-
-    input {
-      flex: 1 1 240px;
-    }
-
-    select {
-      flex: 0 0 170px;
-    }
-
-    button {
-      background: #000;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      flex: 1 1 140px;
-    }
-
-    button:active {
-      opacity: 0.85;
-    }
-
-    .status {
-      margin-bottom: 16px;
       font-size: 14px;
-      color: #555;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    input, select {
+      background: #f9fafb;
+      padding: 12px 16px;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    input:focus, select:focus {
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--primary); /* Focus ring */
+    }
+
+    /* Primary Action Button */
+    button {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+      padding: 0 24px;
+      cursor: pointer;
+    }
+
+    button:hover { background-color: var(--primary-hover); }
+    button:active { transform: translateY(1px); }
+
+    /* Mobile breakdown for controls */
+    @media (max-width: 600px) {
+      .controls {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+      button { padding: 12px; }
+    }
+
+    /* 5. App Metadata Card */
+    .app-info {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-md);
+      display: none; /* Hidden by default */
+      align-items: center;
+      gap: 20px;
+      animation: fadeIn 0.4s ease-out;
+    }
+    
+    .app-info.visible { display: flex; }
+
+    .app-icon {
+      width: 88px;
+      height: 88px;
+      border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .app-details h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .app-meta {
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    /* 6. Review Cards */
+    .status {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .review {
-      background: #fff;
-      border-radius: 10px;
-      padding: 14px;
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid #e5e7eb;
+      transition: transform 0.2s;
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
       margin-bottom: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
     .stars {
-      color: #f5a623;
+      color: #fbbf24; /* Warm yellow */
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .review-date {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .review-title {
+      font-weight: 700;
       font-size: 16px;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
+      color: #111827;
     }
 
-    .title {
-      font-weight: 600;
+    .review-content {
+      color: #374151; /* Soft black for readability */
       font-size: 15px;
-      margin-bottom: 4px;
-    }
-
-    .meta {
-      font-size: 12px;
-      color: #777;
-      margin-bottom: 6px;
-    }
-
-    .content {
-      font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.6; /* Better readability */
       white-space: pre-wrap;
+    }
+
+    .review-footer {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f3f4f6;
+      font-size: 13px;
+      color: #9ca3af;
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Utility Animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 
 <body>
+
+<div class="container">
   <h1>App Store Reviews</h1>
 
   <div class="controls">
     <input
       id="appInput"
       type="text"
-      placeholder="Paste App Store link or App ID"
+      placeholder="Paste App Store link (e.g. apple.com/app/id12345)"
     />
 
     <select id="countryInput">
-      <option value="us">United States</option>
-      <option value="ca">Canada</option>
-      <option value="au">Australia</option>
-      <option value="gb">United Kingdom</option>
-      <option value="dk">Denmark</option>
-      <option value="de">Germany</option>
-      <option value="fr">France</option>
-      <option value="it">Italy</option>
-      <option value="es">Spain</option>
-      <option value="se">Sweden</option>
-      <option value="no">Norway</option>
-      <option value="nl">Netherlands</option>
-      <option value="jp">Japan</option>
+      <option value="us">🇺🇸 USA</option>
+      <option value="gb">🇬🇧 UK</option>
+      <option value="ca">🇨🇦 Canada</option>
+      <option value="au">🇦🇺 Australia</option>
+      <option value="de">🇩🇪 Germany</option>
+      <option value="fr">🇫🇷 France</option>
+      <option value="jp">🇯🇵 Japan</option>
+      <option value="dk">🇩🇰 Denmark</option>
     </select>
 
-    <button id="fetchButton">Fetch Reviews</button>
+    <button id="fetchButton">Get Reviews</button>
   </div>
 
   <div id="status" class="status"></div>
+  <div id="appInfo" class="app-info"></div>
   <div id="reviews"></div>
+</div>
 
-  <script>
-    const fetchButton = document.getElementById("fetchButton");
-    const appInput = document.getElementById("appInput");
-    const countryInput = document.getElementById("countryInput");
-    const reviewsContainer = document.getElementById("reviews");
-    const statusEl = document.getElementById("status");
+<script>
+  const fetchButton = document.getElementById("fetchButton");
+  const appInput = document.getElementById("appInput");
+  const countryInput = document.getElementById("countryInput");
+  const reviewsContainer = document.getElementById("reviews");
+  const statusEl = document.getElementById("status");
+  const appInfoEl = document.getElementById("appInfo");
 
-    function handleFetch() {
-      const rawInput = appInput.value.trim();
-      const country = countryInput.value;
-      const appId = extractAppId(rawInput);
+  function handleFetch() {
+    const rawInput = appInput.value.trim();
+    const country = countryInput.value;
+    const appId = extractAppId(rawInput);
 
-      if (!appId) {
-        statusEl.textContent = "Could not extract App ID";
-        return;
-      }
-
-      reviewsContainer.innerHTML = "";
-      statusEl.textContent = "Fetching reviews…";
-
-      fetchAllPages(appId, country);
+    if (!appId) {
+      statusEl.textContent = "Please enter a valid App Store URL or ID.";
+      statusEl.style.color = "#ef4444"; // Red error color
+      return;
     }
 
-    fetchButton.addEventListener("click", handleFetch);
+    // Reset UI
+    reviewsContainer.innerHTML = "";
+    appInfoEl.classList.remove("visible");
+    statusEl.style.color = "var(--text-muted)";
+    statusEl.textContent = "Fetching reviews...";
+    fetchButton.disabled = true;
+    fetchButton.textContent = "Loading...";
 
-    appInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        handleFetch();
-      }
-    });
+    fetchAllPages(appId, country);
+  }
 
-    function extractAppId(input) {
-      // Raw numeric ID
-      if (/^\d+$/.test(input)) return input;
+  fetchButton.addEventListener("click", handleFetch);
+  appInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") handleFetch();
+  });
 
-      // App Store URL
-      const match = input.match(/id(\d+)/);
-      return match ? match[1] : null;
-    }
+  function extractAppId(input) {
+    if (/^\d+$/.test(input)) return input;
+    const match = input.match(/id(\d+)/);
+    return match ? match[1] : null;
+  }
 
-    async function fetchAllPages(appId, country) {
-      let allReviews = [];
+  async function fetchAllPages(appId, country) {
+    let allReviews = [];
+    let appData = null;
 
-      for (let page = 1; page <= 10; page++) {
-        const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
+    // Fetching up to 5 pages (250 reviews) to keep it snappy, 
+    // increase loop limit if needed.
+    for (let page = 1; page <= 5; page++) {
+      const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
 
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
 
-          if (!data.feed || !data.feed.entry) break;
+        if (!data.feed || !data.feed.entry) break;
 
-          let entries = data.feed.entry;
-
-          // Page 1 includes app metadata as first entry
-          if (page === 1) {
-            entries = entries.slice(1);
-          }
-
-          if (entries.length === 0) break;
-
-          allReviews.push(...entries);
-        } catch {
-          break;
+        let entries = data.feed.entry;
+        if (page === 1) {
+          appData = entries[0];
+          entries = entries.slice(1);
         }
+
+        if (entries.length === 0) break;
+        allReviews.push(...entries);
+      } catch (e) {
+        console.error(e);
+        break;
       }
-
-      statusEl.textContent = `Loaded ${allReviews.length} reviews`;
-      renderReviews(allReviews);
     }
 
-    function renderReviews(reviews) {
-      reviews.forEach(review => {
-        const rating = Number(review["im:rating"]?.label || 0);
-        const title = review.title?.label || "";
-        const content = review.content?.label || "";
-        const author = review.author?.name?.label || "Unknown";
-        const version = review["im:version"]?.label || "";
+    // Reset Button
+    fetchButton.disabled = false;
+    fetchButton.textContent = "Get Reviews";
 
-        const div = document.createElement("div");
-        div.className = "review";
-        div.innerHTML = `
+    if (allReviews.length === 0 && !appData) {
+      statusEl.textContent = "No reviews found or invalid ID.";
+      return;
+    }
+
+    statusEl.textContent = `${allReviews.length} Reviews Found`;
+    
+    if (appData) renderAppInfo(appData);
+    renderReviews(allReviews);
+  }
+
+  function renderAppInfo(appData) {
+    const appName = appData.title?.label || "Unknown App";
+    // Clean up artist name (sometimes it includes copyright info)
+    const artist = appData.artist?.label || "";
+    // Get the highest res icon available
+    const images = appData["im:image"];
+    const icon = images ? images[images.length - 1].label : "";
+    const category = appData.category?.attributes?.label || "";
+
+    appInfoEl.innerHTML = `
+      ${icon ? `<img src="${icon}" alt="${appName}" class="app-icon" />` : ''}
+      <div class="app-details">
+        <h2>${appName}</h2>
+        <div class="app-meta">
+          <span>${artist}</span>
+          ${category ? ` • <span>${category}</span>` : ''}
+        </div>
+      </div>
+    `;
+    appInfoEl.classList.add("visible");
+  }
+
+  function renderReviews(reviews) {
+    reviews.forEach(review => {
+      const rating = Number(review["im:rating"]?.label || 0);
+      const title = review.title?.label || "";
+      const content = review.content?.label || "";
+      const author = review.author?.name?.label || "Unknown";
+      const version = review["im:version"]?.label || "";
+      
+      const dateStr = review.updated?.label || "";
+      // Format date nicely
+      const date = dateStr ? new Date(dateStr).toLocaleDateString("en-US", { 
+        year: 'numeric', month: 'short', day: 'numeric' 
+      }) : "";
+
+      const div = document.createElement("div");
+      div.className = "review";
+      
+      div.innerHTML = `
+        <div class="review-header">
           <div class="stars">${"★".repeat(rating)}${"☆".repeat(5 - rating)}</div>
-          <div class="title">${title}</div>
-          <div class="meta">By ${author} · Version ${version}</div>
-          <div class="content">${content}</div>
-        `;
+          <div class="review-date">${date}</div>
+        </div>
+        <div class="review-title">${title}</div>
+        <div class="review-content">${content}</div>
+        <div class="review-footer">
+          <span>${author}</span>
+          ${version ? `<span>v${version}</span>` : ''}
+        </div>
+      `;
 
-        reviewsContainer.appendChild(div);
-      });
-    }
-  </script>
+      reviewsContainer.appendChild(div);
+    });
+  }
+</script>
 </body>
 </html>
