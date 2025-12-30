@@ -130,7 +130,7 @@
     const reviewsContainer = document.getElementById("reviews");
     const statusEl = document.getElementById("status");
 
-    fetchButton.addEventListener("click", () => {
+    function handleFetch() {
       const rawInput = appInput.value.trim();
       const country = countryInput.value;
       const appId = extractAppId(rawInput);
@@ -144,6 +144,14 @@
       statusEl.textContent = "Fetching reviews…";
 
       fetchAllPages(appId, country);
+    }
+
+    fetchButton.addEventListener("click", handleFetch);
+
+    appInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        handleFetch();
+      }
     });
 
     function extractAppId(input) {
