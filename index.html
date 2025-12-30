@@ -107,7 +107,11 @@
     }
 
     button:hover { background-color: var(--primary-hover); }
-    button:active { transform: scale(0.96); }
+    button:active { transform: scale(0.97); }
+
+    .copy-btn:active {
+      transform: none;
+    }
 
     @media (max-width: 600px) {
       .controls { grid-template-columns: 1fr; padding: 16px; }
