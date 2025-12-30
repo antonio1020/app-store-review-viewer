@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>App Store Reviews Viewer</title>
+  <title>App Store Review Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -15,8 +15,8 @@
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
       --border-radius: 12px;
+      /* Shadows defined but not used on cards per request */
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
     * { box-sizing: border-box; }
@@ -30,7 +30,7 @@
       line-height: 1.5;
     }
 
-    /* 2. Container - Centered and constrained */
+    /* 2. Container */
     .container {
       max-width: 800px;
       margin: 0 auto;
@@ -45,7 +45,7 @@
       color: #1f2937;
     }
 
-    /* 4. Form Design - "Refactoring UI" style inputs */
+    /* 4. Controls */
     .controls {
       display: grid;
       grid-template-columns: 1fr auto auto;
@@ -53,7 +53,7 @@
       margin-bottom: 32px;
       background: var(--bg-card);
       padding: 8px;
-      border-radius: 16px; /* Super rounded container */
+      border-radius: 16px;
       box-shadow: var(--shadow-sm);
       border: 1px solid #e5e7eb;
     }
@@ -75,7 +75,7 @@
 
     input:focus, select:focus {
       background: #fff;
-      box-shadow: 0 0 0 2px var(--primary); /* Focus ring */
+      box-shadow: 0 0 0 2px var(--primary);
     }
 
     /* Primary Action Button */
@@ -85,12 +85,17 @@
       font-weight: 600;
       padding: 0 24px;
       cursor: pointer;
+      /* Smooth transition for the scale effect */
+      transition: transform 0.1s ease-in-out, background-color 0.2s; 
     }
 
     button:hover { background-color: var(--primary-hover); }
-    button:active { transform: translateY(1px); }
+    
+    /* MODIFIED: Shrink button on press */
+    button:active { 
+      transform: scale(0.96); 
+    }
 
-    /* Mobile breakdown for controls */
     @media (max-width: 600px) {
       .controls {
         grid-template-columns: 1fr;
@@ -99,7 +104,7 @@
       button { padding: 12px; }
     }
 
-    /* 5. Review Cards */
+    /* 5. Review Cards & Headers */
     .status {
       font-size: 14px;
       font-weight: 600;
@@ -109,12 +114,28 @@
       letter-spacing: 0.05em;
     }
 
+    /* NEW: Month Section Header */
+    .month-header {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 40px 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    /* Ensure the first header doesn't have huge top margin */
+    .month-header:first-of-type {
+      margin-top: 10px;
+    }
+
     .review {
       background: var(--bg-card);
       border-radius: var(--border-radius);
       padding: 24px;
       margin-bottom: 16px;
-      box-shadow: var(--shadow-sm);
+      /* MODIFIED: Removed shadow, kept border */
+      box-shadow: none; 
       border: 1px solid #e5e7eb;
       transition: transform 0.2s;
     }
@@ -127,7 +148,7 @@
     }
 
     .stars {
-      color: #fbbf24; /* Warm yellow */
+      color: #fbbf24;
       font-size: 18px;
       letter-spacing: 2px;
     }
@@ -145,9 +166,9 @@
     }
 
     .review-content {
-      color: #374151; /* Soft black for readability */
+      color: #374151;
       font-size: 15px;
-      line-height: 1.6; /* Better readability */
+      line-height: 1.6;
       white-space: pre-wrap;
     }
 
@@ -160,19 +181,13 @@
       display: flex;
       gap: 12px;
     }
-
-    /* Utility Animation */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
   </style>
 </head>
 
 <body>
 
 <div class="container">
-  <h1>App Store Reviews</h1>
+  <h1>App Store Review Viewer</h1>
 
   <div class="controls">
     <input
@@ -215,7 +230,7 @@
 
     if (!appId) {
       statusEl.textContent = "Please enter a valid App Store URL or ID.";
-      statusEl.style.color = "#ef4444"; // Red error color
+      statusEl.style.color = "#ef4444";
       return;
     }
 
@@ -243,8 +258,7 @@
   async function fetchAllPages(appId, country) {
     let allReviews = [];
 
-    // Fetching up to 5 pages (250 reviews) to keep it snappy, 
-    // increase loop limit if needed.
+    // Fetching up to 5 pages (250 reviews)
     for (let page = 1; page <= 5; page++) {
       const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
 
@@ -255,6 +269,8 @@
         if (!data.feed || !data.feed.entry) break;
 
         let entries = data.feed.entry;
+        // The RSS feed sometimes returns a single object instead of an array if there's only 1 review
+        if (!Array.isArray(entries)) entries = [entries];
 
         if (entries.length === 0) break;
         allReviews.push(...entries);
@@ -279,26 +295,55 @@
   }
 
   function renderReviews(reviews) {
-    reviews.forEach(review => {
+    // 1. Process dates so we can sort properly
+    const processedReviews = reviews.map(review => {
+        const dateStr = review.updated?.label || "";
+        const dateObj = dateStr ? new Date(dateStr) : new Date(0); // Epoch if invalid
+        return { ...review, _dateObj: dateObj };
+    });
+
+    // 2. Sort by Date Descending (Newest first) to ensure headers are grouped correctly
+    processedReviews.sort((a, b) => b._dateObj - a._dateObj);
+
+    let lastMonthYear = "";
+
+    processedReviews.forEach(review => {
+      // Extract Data
       const rating = Number(review["im:rating"]?.label || 0);
       const title = review.title?.label || "";
       const content = review.content?.label || "";
       const author = review.author?.name?.label || "Unknown";
       const version = review["im:version"]?.label || "";
       
-      const dateStr = review.updated?.label || "";
-      // Format date nicely
-      const date = dateStr ? new Date(dateStr).toLocaleDateString("en-US", { 
+      // Date Formatting
+      const dateObj = review._dateObj;
+      const displayDate = dateObj.toLocaleDateString("en-US", { 
         year: 'numeric', month: 'short', day: 'numeric' 
-      }) : "";
+      });
 
+      // Grouping Logic: Get Month + Year string (e.g. "December 2025")
+      const monthYearStr = dateObj.toLocaleDateString("en-US", { 
+        month: 'long', year: 'numeric' 
+      });
+
+      // If month has changed since the last card, insert a header
+      if (monthYearStr !== lastMonthYear) {
+        const header = document.createElement("div");
+        header.className = "month-header";
+        header.textContent = monthYearStr;
+        reviewsContainer.appendChild(header);
+        
+        lastMonthYear = monthYearStr;
+      }
+
+      // Create Card
       const div = document.createElement("div");
       div.className = "review";
       
       div.innerHTML = `
         <div class="review-header">
           <div class="stars">${"★".repeat(rating)}${"☆".repeat(5 - rating)}</div>
-          <div class="review-date">${date}</div>
+          <div class="review-date">${displayDate}</div>
         </div>
         <div class="review-title">${title}</div>
         <div class="review-content">${content}</div>
