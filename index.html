@@ -65,7 +65,6 @@
       height: auto;
       background: none;
       color: #6b7280;
-      border-radius: 0;
       display: none;
       align-items: center;
       justify-content: center;
@@ -75,9 +74,8 @@
       user-select: none;
       line-height: 1;
     }
-
-    #clearButton:hover { color: #374151; }
     #clearButton.show { display: flex; }
+    #clearButton:hover { color: #374151; }
 
     input, select, button {
       font-size: 14px;
@@ -103,11 +101,10 @@
       padding: 0 24px;
       cursor: pointer;
       min-width: 140px; 
-      transition: transform 0.1s ease-in-out, background-color 0.2s; 
+      transition: background-color 0.2s; 
     }
 
     button:hover { background-color: var(--primary-hover); }
-    button:active { transform: scale(0.96); }
 
     @media (max-width: 600px) {
       .controls { grid-template-columns: 1fr; padding: 16px; }
@@ -152,8 +149,8 @@
       margin-left: 16px;
       border-radius: 4px;
       transition: background 0.2s;
+      display: none; /* hidden until reviews exist */
     }
-
     .copy-btn:hover { background-color: #e5e7eb; color: var(--text-main); }
 
     .month-header {
@@ -225,8 +222,14 @@ const statusEl = document.getElementById("status");
 const statusContainer = document.getElementById("status-container");
 const copyAllBtn = document.getElementById("copyAll");
 
-appInput.addEventListener("input", () => { clearButton.classList.toggle("show", appInput.value.length > 0); });
-clearButton.addEventListener("click", () => { appInput.value=""; clearButton.classList.remove("show"); appInput.focus(); });
+appInput.addEventListener("input", () => {
+  clearButton.classList.toggle("show", appInput.value.length > 0);
+});
+clearButton.addEventListener("click", () => {
+  appInput.value="";
+  clearButton.classList.remove("show");
+  appInput.focus();
+});
 
 fetchButton.addEventListener("click", handleFetch);
 appInput.addEventListener("keypress", e => { if(e.key==="Enter") handleFetch(); });
@@ -239,12 +242,12 @@ function extractAppId(input) {
 
 async function fetchAllPages(appId, country) {
   let allReviews=[];
-  for(let page=1;page<=5;page++){
+  for(let page=1; page<=5; page++){
     const url=`https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
     try{
       const response=await fetch(url);
       const data=await response.json();
-      if(!data.feed||!data.feed.entry) break;
+      if(!data.feed || !data.feed.entry) break;
       let entries=data.feed.entry;
       if(!Array.isArray(entries)) entries=[entries];
       if(entries.length===0) break;
@@ -257,58 +260,66 @@ async function fetchAllPages(appId, country) {
 
   if(allReviews.length===0){
     statusEl.textContent="No reviews found or invalid ID.";
+    copyAllBtn.style.display="none";
     statusContainer.style.borderBottom="none";
     return;
   }
 
   statusEl.textContent=`${allReviews.length} Reviews Found`;
+  copyAllBtn.style.display="inline-flex";
   renderReviews(allReviews);
 }
 
-function handleFetch(){
+function handleFetch() {
   const rawInput=appInput.value.trim();
   const country=countryInput.value;
   const appId=extractAppId(rawInput);
-  if(!appId){ statusEl.textContent="Please enter a valid App Store URL or ID."; statusEl.style.color="#ef4444"; return; }
+  if(!appId){ 
+    statusEl.textContent="Please enter a valid App Store URL or ID."; 
+    statusEl.style.color="#ef4444"; 
+    copyAllBtn.style.display="none"; 
+    return; 
+  }
   reviewsContainer.innerHTML="";
   statusEl.style.color="var(--text-main)";
   statusEl.textContent="Fetching reviews...";
   statusContainer.style.borderBottom="none";
   fetchButton.disabled=true;
   fetchButton.textContent="Loading...";
+  copyAllBtn.style.display="none";
   fetchAllPages(appId,country);
 }
 
 function renderReviews(reviews){
-  const processedReviews=reviews.map(r=>{
-    const dateStr=r.updated?.label||"";
-    const dateObj=dateStr?new Date(dateStr):new Date(0);
-    return {...r,_dateObj:dateObj};
+  const processedReviews = reviews.map(r => {
+    const dateStr = r.updated?.label || "";
+    const dateObj = dateStr ? new Date(dateStr) : new Date(0);
+    return {...r, _dateObj: dateObj};
   });
-  processedReviews.sort((a,b)=>b._dateObj-a._dateObj);
+  processedReviews.sort((a,b)=>b._dateObj - a._dateObj);
 
-  let lastMonthYear="";
-  processedReviews.forEach(r=>{
-    const rating=Number(r["im:rating"]?.label||0);
-    const title=r.title?.label||"";
-    const content=r.content?.label||"";
-    const author=r.author?.name?.label||"Unknown";
-    const version=r["im:version"]?.label||"";
-    const dateObj=r._dateObj;
-    const displayDate=dateObj.toLocaleDateString("en-US",{year:'numeric',month:'short',day:'numeric'});
-    const monthYearStr=dateObj.toLocaleDateString("en-US",{month:'long',year:'numeric'});
+  let lastMonthYear = "";
+  processedReviews.forEach(r => {
+    const rating = Number(r["im:rating"]?.label || 0);
+    const title = r.title?.label || "";
+    const content = r.content?.label || "";
+    const author = r.author?.name?.label || "Unknown";
+    const version = r["im:version"]?.label || "";
+    const dateObj = r._dateObj;
+    const displayDate = dateObj.toLocaleDateString("en-US",{year:'numeric',month:'short',day:'numeric'});
+    const monthYearStr = dateObj.toLocaleDateString("en-US",{month:'long',year:'numeric'});
 
-    if(monthYearStr!==lastMonthYear){
-      const header=document.createElement("div");
-      header.className="month-header";
-      header.textContent=monthYearStr;
+    if(monthYearStr !== lastMonthYear){
+      const header = document.createElement("div");
+      header.className = "month-header";
+      header.textContent = monthYearStr;
       reviewsContainer.appendChild(header);
-      lastMonthYear=monthYearStr;
+      lastMonthYear = monthYearStr;
     }
 
-    const div=document.createElement("div");
-    div.className="review";
-    div.innerHTML=`
+    const div = document.createElement("div");
+    div.className = "review";
+    div.innerHTML = `
       <div class="review-header">
         <div class="stars">${"★".repeat(rating)}${"☆".repeat(5-rating)}</div>
         <div class="review-date">${displayDate}</div>
@@ -330,15 +341,15 @@ copyAllBtn.addEventListener("click", () => {
   if(reviews.length===0) return;
 
   let textToCopy="";
-  reviews.forEach(r=>{
-    const title=r.querySelector(".review-title")?.textContent||"";
-    const content=r.querySelector(".review-content")?.textContent||"";
-    textToCopy+=title+"\n"+content+"\n\n";
+  reviews.forEach(r => {
+    const title = r.querySelector(".review-title")?.textContent || "";
+    const content = r.querySelector(".review-content")?.textContent || "";
+    textToCopy += title + "\n" + content + "\n\n";
   });
 
   navigator.clipboard.writeText(textToCopy)
     .then(()=>alert("All reviews copied to clipboard!"))
-    .catch(err=>console.error("Failed to copy text:",err));
+    .catch(err=>console.error("Failed to copy text:", err));
 });
 </script>
 </body>
