@@ -157,9 +157,6 @@
       margin-bottom: 16px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-    
-      border-bottom: 1px solid #d1d5db; /* light gray divider */
-      padding-bottom: 8px;             /* space between text and divider */
     }
 
     .month-header {
@@ -186,6 +183,15 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 12px;
+    }
+    
+        .status:empty {
+      border-bottom: none;
+    }
+    
+    .status:not(:empty) {
+      border-bottom: 1px solid #d1d5db;
+      padding-bottom: 8px;
     }
 
     .stars { color: #FF7F57; font-size: 18px; letter-spacing: 2px; }
