@@ -119,9 +119,11 @@
 
     @media (max-width: 600px) {
       .controls { grid-template-columns: 1fr; padding: 16px; }
-      input, select, button { height: 44px; }
-      input, select { padding: 0 16px; }
-      button { padding: 0 12px; min-width: 100%; }
+      .controls input, .controls select, .controls button {
+        height: 44px;
+      }
+      .controls input, .controls select { padding: 0 16px; }
+      .controls button { padding: 0 12px; min-width: 100%; }
     }
 
     /* Status + Copy Button Container */
