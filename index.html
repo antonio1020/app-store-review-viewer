@@ -28,11 +28,7 @@
       line-height: 1.5;
     }
 
-    /* 2. Container */
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
+    .container { max-width: 800px; margin: 0 auto; }
 
     h1 {
       font-family: Georgia, 'Times New Roman', Times, serif;
@@ -43,7 +39,7 @@
       color: #344257;
     }
 
-    /* 4. Controls */
+    /* Controls */
     .controls {
       display: grid;
       grid-template-columns: 1fr auto auto;
@@ -55,7 +51,6 @@
       border: none;
     }
 
-    /* --- ADDED: Input Wrapper for the X button --- */
     .input-wrapper {
       position: relative;
       display: flex;
@@ -74,7 +69,7 @@
       width: auto;
       height: auto;
       background: none;
-      color: #6b7280; /* same muted tone as select text/icons */
+      color: #6b7280;
       border-radius: 0;
       display: none;
       align-items: center;
@@ -85,14 +80,9 @@
       user-select: none;
       line-height: 1;
     }
-    
-    #clearButton:hover {
-      color: #374151; /* slightly darker on hover */
-    }
 
-    #clearButton.show {
-      display: flex;
-    }
+    #clearButton:hover { color: #374151; }
+    #clearButton.show { display: flex; }
 
     input, select, button {
       font-size: 14px;
@@ -109,6 +99,8 @@
       font-weight: 500;
     }
 
+    input:focus { background: #fff; box-shadow: 0 0 0 2px var(--primary); }
+
     button {
       background-color: var(--primary);
       color: white;
@@ -121,44 +113,57 @@
 
     button:hover { background-color: var(--primary-hover); }
     button:active { transform: scale(0.96); }
-    
-    input:focus {
-        background: #fff;
-        box-shadow: 0 0 0 2px var(--primary);
-      }
-    
+
     @media (max-width: 600px) {
-      .controls {
-        grid-template-columns: 1fr;
-        padding: 16px;
-      }
-    
-      input,
-      select,
-      button {
-        height: 44px;
-      }
-    
-      input,
-      select {
-        padding: 0 16px;
-      }
-    
-      button {
-        padding: 0 12px;   /* horizontal only */
-        min-width: 100%;
-      }
+      .controls { grid-template-columns: 1fr; padding: 16px; }
+      input, select, button { height: 44px; }
+      input, select { padding: 0 16px; }
+      button { padding: 0 12px; min-width: 100%; }
+    }
+
+    /* Status + Copy Button Layout */
+    .status-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0; /* margin handled by status itself */
+      width: 100%;
     }
 
     .status {
       font-size: 14px;
       font-weight: 600;
       color: var(--text-main);
-      margin-bottom: 16px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      padding-bottom: 8px;
+      border-bottom: none;
+      margin-bottom: 0;
+      flex: 1;
     }
 
+    .status:empty { border-bottom: none; }
+    .status:not(:empty) {
+      border-bottom: 1px solid #d1d5db;
+      padding-bottom: 8px;
+      margin-bottom: 36px; /* space between divider and reviews */
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 14px;
+      padding: 0;
+      margin-left: 16px;
+    }
+    .copy-btn:hover { color: var(--primary); }
+
+    /* Reviews */
     .month-header {
       font-size: 14px;
       font-weight: 600;
@@ -167,7 +172,6 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    
     .month-header:first-of-type { margin-top: 10px; }
 
     .review {
@@ -177,24 +181,12 @@
       margin-bottom: 16px;
       border: none;
     }
-
     .review-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 12px;
     }
-    
-        .status:empty {
-      border-bottom: none;
-    }
-    
-    .status:not(:empty) {
-      border-bottom: 1px solid #d1d5db;
-      padding-bottom: 8px;
-      margin-bottom: 36px;   /* extra space between border and reviews */
-    }
-
     .stars { color: #FF7F57; font-size: 18px; letter-spacing: 2px; }
     .review-date { font-size: 13px; color: #9ca3af; }
     .review-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827; }
@@ -218,12 +210,7 @@
 
   <div class="controls">
     <div class="input-wrapper">
-      <input
-        id="appInput"
-        type="text"
-        placeholder="Paste App Store link (e.g. apple.com/app/id12345)"
-        autofocus
-      />
+      <input id="appInput" type="text" placeholder="Paste App Store link (e.g. apple.com/app/id12345)" autofocus />
       <span id="clearButton" title="Clear text">✕</span>
     </div>
 
@@ -242,140 +229,145 @@
     <button id="fetchButton">Get Reviews</button>
   </div>
 
-  <div id="status" class="status"></div>
+  <div class="status-container">
+    <div id="status" class="status"></div>
+    <button id="copyAll" class="copy-btn">Copy Text</button>
+  </div>
+
   <div id="reviews"></div>
 </div>
 
 <script>
-  const fetchButton = document.getElementById("fetchButton");
-  const appInput = document.getElementById("appInput");
-  const clearButton = document.getElementById("clearButton");
-  const countryInput = document.getElementById("countryInput");
-  const reviewsContainer = document.getElementById("reviews");
-  const statusEl = document.getElementById("status");
+const fetchButton = document.getElementById("fetchButton");
+const appInput = document.getElementById("appInput");
+const clearButton = document.getElementById("clearButton");
+const countryInput = document.getElementById("countryInput");
+const reviewsContainer = document.getElementById("reviews");
+const statusEl = document.getElementById("status");
+const copyAllBtn = document.getElementById("copyAll");
 
-  // Logic to show/hide the X button
-  appInput.addEventListener("input", () => {
-    if (appInput.value.length > 0) {
-      clearButton.classList.add("show");
-    } else {
-      clearButton.classList.remove("show");
+// Show/hide clear button
+appInput.addEventListener("input", () => {
+  clearButton.classList.toggle("show", appInput.value.length > 0);
+});
+
+// Clear input
+clearButton.addEventListener("click", () => {
+  appInput.value = "";
+  clearButton.classList.remove("show");
+  appInput.focus();
+});
+
+fetchButton.addEventListener("click", handleFetch);
+appInput.addEventListener("keypress", e => { if (e.key === "Enter") handleFetch(); });
+
+function extractAppId(input) {
+  if (/^\d+$/.test(input)) return input;
+  const match = input.match(/id(\d+)/);
+  return match ? match[1] : null;
+}
+
+async function fetchAllPages(appId, country) {
+  let allReviews = [];
+  for (let page = 1; page <= 5; page++) {
+    const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!data.feed || !data.feed.entry) break;
+      let entries = data.feed.entry;
+      if (!Array.isArray(entries)) entries = [entries];
+      if (entries.length === 0) break;
+      allReviews.push(...entries);
+    } catch (e) { console.error(e); break; }
+  }
+
+  fetchButton.disabled = false;
+  fetchButton.textContent = "Get Reviews";
+
+  if (allReviews.length === 0) {
+    statusEl.textContent = "No reviews found or invalid ID.";
+    return;
+  }
+
+  statusEl.textContent = `${allReviews.length} Reviews Found`;
+  renderReviews(allReviews);
+}
+
+function handleFetch() {
+  const rawInput = appInput.value.trim();
+  const country = countryInput.value;
+  const appId = extractAppId(rawInput);
+  if (!appId) { statusEl.textContent = "Please enter a valid App Store URL or ID."; statusEl.style.color = "#ef4444"; return; }
+  reviewsContainer.innerHTML = "";
+  statusEl.style.color = "var(--text-main)";
+  statusEl.textContent = "Fetching reviews...";
+  fetchButton.disabled = true;
+  fetchButton.textContent = "Loading...";
+  fetchAllPages(appId, country);
+}
+
+function renderReviews(reviews) {
+  const processedReviews = reviews.map(r => {
+    const dateStr = r.updated?.label || "";
+    const dateObj = dateStr ? new Date(dateStr) : new Date(0);
+    return { ...r, _dateObj: dateObj };
+  });
+  processedReviews.sort((a,b) => b._dateObj - a._dateObj);
+
+  let lastMonthYear = "";
+  processedReviews.forEach(r => {
+    const rating = Number(r["im:rating"]?.label || 0);
+    const title = r.title?.label || "";
+    const content = r.content?.label || "";
+    const author = r.author?.name?.label || "Unknown";
+    const version = r["im:version"]?.label || "";
+    const dateObj = r._dateObj;
+    const displayDate = dateObj.toLocaleDateString("en-US", { year:'numeric', month:'short', day:'numeric' });
+    const monthYearStr = dateObj.toLocaleDateString("en-US", { month:'long', year:'numeric' });
+
+    if (monthYearStr !== lastMonthYear) {
+      const header = document.createElement("div");
+      header.className = "month-header";
+      header.textContent = monthYearStr;
+      reviewsContainer.appendChild(header);
+      lastMonthYear = monthYearStr;
     }
+
+    const div = document.createElement("div");
+    div.className = "review";
+    div.innerHTML = `
+      <div class="review-header">
+        <div class="stars">${"★".repeat(rating)}${"☆".repeat(5-rating)}</div>
+        <div class="review-date">${displayDate}</div>
+      </div>
+      <div class="review-title">${title}</div>
+      <div class="review-content">${content}</div>
+      <div class="review-footer">
+        <span>${author}</span>
+        ${version ? `<span>v${version}</span>` : ''}
+      </div>
+    `;
+    reviewsContainer.appendChild(div);
+  });
+}
+
+// Copy all reviews
+copyAllBtn.addEventListener("click", () => {
+  const reviews = document.querySelectorAll(".review");
+  if (reviews.length === 0) return;
+
+  let textToCopy = "";
+  reviews.forEach(r => {
+    const title = r.querySelector(".review-title")?.textContent || "";
+    const content = r.querySelector(".review-content")?.textContent || "";
+    textToCopy += title + "\n" + content + "\n\n";
   });
 
-  // Logic to clear input and refocus
-  clearButton.addEventListener("click", () => {
-    appInput.value = "";
-    clearButton.classList.remove("show");
-    appInput.focus();
-  });
-
-  function handleFetch() {
-    const rawInput = appInput.value.trim();
-    const country = countryInput.value;
-    const appId = extractAppId(rawInput);
-
-    if (!appId) {
-      statusEl.textContent = "Please enter a valid App Store URL or ID.";
-      statusEl.style.color = "#ef4444";
-      return;
-    }
-
-    reviewsContainer.innerHTML = "";
-    statusEl.style.color = "var(--text-main)";
-    statusEl.textContent = "Fetching reviews...";
-    fetchButton.disabled = true;
-    fetchButton.textContent = "Loading...";
-
-    fetchAllPages(appId, country);
-  }
-
-  fetchButton.addEventListener("click", handleFetch);
-  appInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") handleFetch();
-  });
-
-  function extractAppId(input) {
-    if (/^\d+$/.test(input)) return input;
-    const match = input.match(/id(\d+)/);
-    return match ? match[1] : null;
-  }
-
-  async function fetchAllPages(appId, country) {
-    let allReviews = [];
-    for (let page = 1; page <= 5; page++) {
-      const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        if (!data.feed || !data.feed.entry) break;
-        let entries = data.feed.entry;
-        if (!Array.isArray(entries)) entries = [entries];
-        if (entries.length === 0) break;
-        allReviews.push(...entries);
-      } catch (e) {
-        console.error(e);
-        break;
-      }
-    }
-
-    fetchButton.disabled = false;
-    fetchButton.textContent = "Get Reviews";
-
-    if (allReviews.length === 0) {
-      statusEl.textContent = "No reviews found or invalid ID.";
-      return;
-    }
-
-    statusEl.textContent = `${allReviews.length} Reviews Found`;
-    renderReviews(allReviews);
-  }
-
-  function renderReviews(reviews) {
-    const processedReviews = reviews.map(review => {
-        const dateStr = review.updated?.label || "";
-        const dateObj = dateStr ? new Date(dateStr) : new Date(0);
-        return { ...review, _dateObj: dateObj };
-    });
-
-    processedReviews.sort((a, b) => b._dateObj - a._dateObj);
-    let lastMonthYear = "";
-
-    processedReviews.forEach(review => {
-      const rating = Number(review["im:rating"]?.label || 0);
-      const title = review.title?.label || "";
-      const content = review.content?.label || "";
-      const author = review.author?.name?.label || "Unknown";
-      const version = review["im:version"]?.label || "";
-      const dateObj = review._dateObj;
-      const displayDate = dateObj.toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' });
-      const monthYearStr = dateObj.toLocaleDateString("en-US", { month: 'long', year: 'numeric' });
-
-      if (monthYearStr !== lastMonthYear) {
-        const header = document.createElement("div");
-        header.className = "month-header";
-        header.textContent = monthYearStr;
-        reviewsContainer.appendChild(header);
-        lastMonthYear = monthYearStr;
-      }
-
-      const div = document.createElement("div");
-      div.className = "review";
-      div.innerHTML = `
-        <div class="review-header">
-          <div class="stars">${"★".repeat(rating)}${"☆".repeat(5 - rating)}</div>
-          <div class="review-date">${displayDate}</div>
-        </div>
-        <div class="review-title">${title}</div>
-        <div class="review-content">${content}</div>
-        <div class="review-footer">
-          <span>${author}</span>
-          ${version ? `<span>v${version}</span>` : ''}
-        </div>
-      `;
-      reviewsContainer.appendChild(div);
-    });
-  }
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => alert("All reviews copied to clipboard!"))
+    .catch(err => console.error("Failed to copy text:", err));
+});
 </script>
 </body>
 </html>
