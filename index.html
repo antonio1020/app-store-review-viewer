@@ -281,7 +281,7 @@ async function fetchAllPages(appId, country) {
     return;
   }
 
-  statusEl.textContent=`${allReviews.length} Reviews Found`;
+  statusEl.textContent=`${allReviews.length} Reviews`;
   statusContainer.classList.add("has-reviews");
   copyAllBtn.style.display="inline-block";
   renderReviews(allReviews);
@@ -360,7 +360,7 @@ copyAllBtn.addEventListener("click", () => {
   });
 
   navigator.clipboard.writeText(textToCopy)
-    .then(()=>alert("All reviews copied to clipboard!"))
+    .then(()=>alert("The content of all reviews has been copied to the clipboard!"))
     .catch(err=>console.error("Failed to copy text:",err));
 });
 </script>
