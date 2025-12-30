@@ -149,7 +149,6 @@
     .copy-btn {
       background: none;
       border: none;
-      /* color: var(--text-main); */
       color: var(--primary);       /* primary color */
       font-weight: 600;
       cursor: pointer;
@@ -166,8 +165,8 @@
 
     .month-header {
       font-size: 14px;
-      font-weight: 600;
-      color: #9ca3af;
+      font-weight: 400;
+      color: var(--text-muted);
       margin: 32px 0 12px 0;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -282,7 +281,7 @@ function handleFetch(){
   const appId=extractAppId(rawInput);
   if(!appId){ statusEl.textContent="Please enter a valid App Store URL or ID."; statusEl.style.color="#ef4444"; return; }
   reviewsContainer.innerHTML="";
-  statusEl.style.color="var(--text-main)";
+  statusEl.style.color="#344257";
   statusEl.textContent="Fetching reviews...";
   statusContainer.classList.remove("has-reviews");
   copyAllBtn.style.display="none";
