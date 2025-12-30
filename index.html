@@ -135,6 +135,7 @@
       width: 100%;
       flex-wrap: wrap;       /* allow wrapping to next line if needed */
       gap: 8px;              /* spacing between items */
+      align-items: center;   /* vertically center items */
     }
 
     .status-container.has-reviews { border-bottom: 1px solid #d1d5db; }
@@ -145,7 +146,8 @@
       color: #344257;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      flex: 1 1 0;           /* both try to expand equally */
+      flex: 1 1 auto;        /* takes remaining space */
+      min-width: 0;           /* allows text to shrink */
     }
 
     .copy-btn {
@@ -161,7 +163,8 @@
       margin-left: 16px;
       border-radius: 4px;
       transition: background 0.2s;
-      flex: 1 1 0;           /* both try to expand equally */
+      flex: 0 0 auto;        /* hug its content, don’t grow or shrink */
+      white-space: nowrap;    /* prevent text from breaking */
     }
 
     .copy-btn:hover { background-color: #e5e7eb; color: var(--primary); }
