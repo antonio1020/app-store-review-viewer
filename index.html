@@ -8,12 +8,12 @@
   <style>
     /* 1. Base Variables & Reset */
     :root {
-      --bg-body: #f3f4f6;
+      --bg-body: #f4f5f7;
       --bg-card: #ffffff;
       --text-main: #111827;
       --text-muted: #6b7280;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
+      --primary: #ff5924;
+      --primary-hover: #e64d1f;
       --border-radius: 12px;
     }
 
@@ -24,7 +24,7 @@
       background-color: var(--bg-body);
       color: var(--text-main);
       margin: 0;
-      padding: 40px 20px;
+      padding: 80px 20px 40px;
       line-height: 1.5;
     }
 
@@ -35,11 +35,12 @@
     }
 
     h1 {
-      font-size: 28px;
-      font-weight: 800;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      font-size: 32px;
+      font-weight: 500;
       letter-spacing: -0.025em;
-      margin: 0 0 24px 0;
-      color: #1f2937;
+      margin: 0 0 48px 0;
+      color: #344257;
     }
 
     /* 4. Controls */
@@ -47,11 +48,11 @@
       display: grid;
       grid-template-columns: 1fr auto auto;
       gap: 12px;
-      margin-bottom: 32px;
+      margin-bottom: 48px;
       background: var(--bg-card);
       padding: 8px;
       border-radius: 16px;
-      border: 1px solid #e5e7eb;
+      border: none;
     }
 
     /* --- ADDED: Input Wrapper for the X button --- */
@@ -80,7 +81,7 @@
       justify-content: center;
       font-size: 12px;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: regular;
       user-select: none;
     }
 
@@ -115,7 +116,7 @@
     button {
       background-color: var(--primary);
       color: white;
-      font-weight: 600;
+      font-weight: 400;
       padding: 0 24px;
       cursor: pointer;
       min-width: 140px; 
@@ -161,7 +162,7 @@
       border-radius: var(--border-radius);
       padding: 24px;
       margin-bottom: 16px;
-      border: 1px solid #e5e7eb;
+      border: none;
     }
 
     .review-header {
@@ -171,7 +172,7 @@
       margin-bottom: 12px;
     }
 
-    .stars { color: #fbbf24; font-size: 18px; letter-spacing: 2px; }
+    .stars { color: #ff5924; font-size: 18px; letter-spacing: 2px; }
     .review-date { font-size: 13px; color: #9ca3af; }
     .review-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827; }
     .review-content { color: #374151; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
