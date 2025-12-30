@@ -126,22 +126,34 @@
 
     button:hover { background-color: var(--primary-hover); }
     button:active { transform: scale(0.96); }
-
+    
     @media (max-width: 600px) {
       .controls {
         grid-template-columns: 1fr;
         padding: 16px;
       }
-      button { 
-        padding: 12px; 
-        min-width: 100%; 
+    
+      input,
+      select,
+      button {
+        height: 44px;
+      }
+    
+      input,
+      select {
+        padding: 0 16px;
+      }
+    
+      button {
+        padding: 0 12px;   /* horizontal only */
+        min-width: 100%;
       }
     }
 
     .status {
       font-size: 14px;
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--text-main); /* black */
       margin-bottom: 16px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
