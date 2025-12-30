@@ -122,53 +122,62 @@
       input, select, button { height: 44px; }
       input, select { padding: 0 16px; }
       button { padding: 0 12px; min-width: 100%; }
+      .status {
+        text-align: center;
+        flex: 1 1 100%; /* Force full width to ensure centering works */
+      }
+      .status-container {
+        gap: 8px; /* Tighter gap when stacked */
+      }
     }
 
     /* Status + Copy Button Container */
     .status-container {
       display: flex;
-      justify-content: space-between;
+      flex-wrap: wrap;       /* Allows wrapping */
+      gap: 16px;             /* Space between items when side-by-side */
+      justify-content: center; /* Centers items when they wrap */
       align-items: center;
-      border-bottom: none;
+      width: 100%;
       padding-bottom: 8px;
       margin-bottom: 36px;
-      width: 100%;
-      flex-wrap: wrap;       /* allow wrapping to next line if needed */
-      align-items: center;   /* vertically center items */
-      gap: 8px;
-      justify-content: center;  
     }
-
-    .status-container.has-reviews { border-bottom: 1px solid #d1d5db; }
-
+    
+    .status-container.has-reviews { 
+      border-bottom: 1px solid #d1d5db; 
+    }
+    
     .status {
       font-size: 14px;
       font-weight: 600;
       color: #344257;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      flex: 1 1 auto;        /* takes remaining space */
-      min-width: 0;           /* allows text to shrink */
-      text-align: center;     /* center text horizontally */
+      
+      /* Key Changes */
+      flex: 1 1 200px;   /* Grows to fill space, but has a basis that triggers wrap */
+      text-align: left;  /* Default to left */
+      min-width: fit-content;
     }
-
+    
     .copy-btn {
       background: none;
       border: none;
-      color: var(--primary);       /* primary color */
+      color: var(--primary);
       font-weight: 600;
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       font-size: 14px;
       padding: 4px 8px;
-      margin-left: 16px;
       border-radius: 4px;
       transition: background 0.2s;
-      flex: 0 0 auto;        /* hug its content, don’t grow or shrink */
-      white-space: nowrap;    /* prevent text from breaking */
+    
+      /* Key Changes */
+      flex: 0 0 auto;    /* "Hug" mode */
+      white-space: nowrap;
+      text-align: right; /* Aligns text within the button if needed */
     }
-
     .copy-btn:hover { background-color: #e5e7eb; color: var(--primary); }
 
     .month-header {
