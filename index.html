@@ -149,7 +149,8 @@
     .copy-btn {
       background: none;
       border: none;
-      color: var(--text-main);
+      /* color: var(--text-main); */
+      color: var(--primary);       /* primary color */
       font-weight: 600;
       cursor: pointer;
       text-transform: uppercase;
@@ -159,9 +160,10 @@
       margin-left: 16px;
       border-radius: 4px;
       transition: background 0.2s;
+      text-decoration: underline;   /* underlined text */
     }
 
-    .copy-btn:hover { background-color: #e5e7eb; color: var(--text-main); }
+    .copy-btn:hover { background-color: #e5e7eb; color: var(--primary); }
 
     .month-header {
       font-size: 14px;
