@@ -122,6 +122,11 @@
     button:hover { background-color: var(--primary-hover); }
     button:active { transform: scale(0.96); }
     
+    input:focus {
+        background: #fff;
+        box-shadow: 0 0 0 2px var(--primary);
+      }
+    
     @media (max-width: 600px) {
       .controls {
         grid-template-columns: 1fr;
@@ -137,11 +142,6 @@
       input,
       select {
         padding: 0 16px;
-      }
-
-      input:focus {
-        background: #fff;
-        box-shadow: 0 0 0 2px var(--primary);
       }
     
       button {
