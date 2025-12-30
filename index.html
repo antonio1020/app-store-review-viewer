@@ -34,7 +34,6 @@
       margin: 0 auto;
     }
 
-    /* 3. Typography hierarchy */
     h1 {
       font-size: 28px;
       font-weight: 800;
@@ -52,9 +51,45 @@
       background: var(--bg-card);
       padding: 8px;
       border-radius: 16px;
-      /* MODIFIED: Removed shadow */
-      box-shadow: none; 
       border: 1px solid #e5e7eb;
+    }
+
+    /* --- ADDED: Input Wrapper for the X button --- */
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding-right: 40px; /* Space for the X button */
+    }
+
+    #clearButton {
+      position: absolute;
+      right: 12px;
+      width: 20px;
+      height: 20px;
+      background: #d1d5db;
+      color: white;
+      border-radius: 50%;
+      display: none; /* Hidden by default */
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    #clearButton:hover {
+      background: #9ca3af;
+    }
+
+    #clearButton.show {
+      display: flex;
     }
 
     input, select, button {
@@ -77,23 +112,18 @@
       box-shadow: 0 0 0 2px var(--primary);
     }
 
-    /* Primary Action Button */
     button {
       background-color: var(--primary);
       color: white;
       font-weight: 600;
       padding: 0 24px;
       cursor: pointer;
-      /* MODIFIED: Added min-width to prevent resizing during "Loading" state */
       min-width: 140px; 
       transition: transform 0.1s ease-in-out, background-color 0.2s; 
     }
 
     button:hover { background-color: var(--primary-hover); }
-    
-    button:active { 
-      transform: scale(0.96); 
-    }
+    button:active { transform: scale(0.96); }
 
     @media (max-width: 600px) {
       .controls {
@@ -102,11 +132,10 @@
       }
       button { 
         padding: 12px; 
-        min-width: 100%; /* Full width on mobile */
+        min-width: 100%; 
       }
     }
 
-    /* 5. Review Cards & Headers */
     .status {
       font-size: 14px;
       font-weight: 600;
@@ -116,7 +145,6 @@
       letter-spacing: 0.05em;
     }
 
-    /* MODIFIED: Month Section Header to match status text style */
     .month-header {
       font-size: 14px;
       font-weight: 600;
@@ -124,21 +152,16 @@
       margin: 32px 0 12px 0;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: none; /* Removed line */
     }
     
-    .month-header:first-of-type {
-      margin-top: 10px;
-    }
+    .month-header:first-of-type { margin-top: 10px; }
 
     .review {
       background: var(--bg-card);
       border-radius: var(--border-radius);
       padding: 24px;
       margin-bottom: 16px;
-      box-shadow: none; 
       border: 1px solid #e5e7eb;
-      transition: transform 0.2s;
     }
 
     .review-header {
@@ -148,31 +171,10 @@
       margin-bottom: 12px;
     }
 
-    .stars {
-      color: #fbbf24;
-      font-size: 18px;
-      letter-spacing: 2px;
-    }
-
-    .review-date {
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    .review-title {
-      font-weight: 700;
-      font-size: 16px;
-      margin-bottom: 8px;
-      color: #111827;
-    }
-
-    .review-content {
-      color: #374151;
-      font-size: 15px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
+    .stars { color: #fbbf24; font-size: 18px; letter-spacing: 2px; }
+    .review-date { font-size: 13px; color: #9ca3af; }
+    .review-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827; }
+    .review-content { color: #374151; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
     .review-footer {
       margin-top: 16px;
       padding-top: 16px;
@@ -191,12 +193,15 @@
   <h1>App Store Review Viewer</h1>
 
   <div class="controls">
-    <input
-      id="appInput"
-      type="text"
-      placeholder="Paste App Store link (e.g. apple.com/app/id12345)"
-      autofocus
+    <div class="input-wrapper">
+      <input
+        id="appInput"
+        type="text"
+        placeholder="Paste App Store link (e.g. apple.com/app/id12345)"
+        autofocus
       />
+      <span id="clearButton" title="Clear text">✕</span>
+    </div>
 
     <select id="countryInput">
       <option value="us">🇺🇸 USA</option>
@@ -220,9 +225,26 @@
 <script>
   const fetchButton = document.getElementById("fetchButton");
   const appInput = document.getElementById("appInput");
+  const clearButton = document.getElementById("clearButton");
   const countryInput = document.getElementById("countryInput");
   const reviewsContainer = document.getElementById("reviews");
   const statusEl = document.getElementById("status");
+
+  // Logic to show/hide the X button
+  appInput.addEventListener("input", () => {
+    if (appInput.value.length > 0) {
+      clearButton.classList.add("show");
+    } else {
+      clearButton.classList.remove("show");
+    }
+  });
+
+  // Logic to clear input and refocus
+  clearButton.addEventListener("click", () => {
+    appInput.value = "";
+    clearButton.classList.remove("show");
+    appInput.focus();
+  });
 
   function handleFetch() {
     const rawInput = appInput.value.trim();
@@ -257,19 +279,14 @@
 
   async function fetchAllPages(appId, country) {
     let allReviews = [];
-
     for (let page = 1; page <= 5; page++) {
       const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
-
       try {
         const response = await fetch(url);
         const data = await response.json();
-
         if (!data.feed || !data.feed.entry) break;
-
         let entries = data.feed.entry;
         if (!Array.isArray(entries)) entries = [entries];
-
         if (entries.length === 0) break;
         allReviews.push(...entries);
       } catch (e) {
@@ -287,7 +304,6 @@
     }
 
     statusEl.textContent = `${allReviews.length} Reviews Found`;
-    
     renderReviews(allReviews);
   }
 
@@ -299,7 +315,6 @@
     });
 
     processedReviews.sort((a, b) => b._dateObj - a._dateObj);
-
     let lastMonthYear = "";
 
     processedReviews.forEach(review => {
@@ -308,28 +323,20 @@
       const content = review.content?.label || "";
       const author = review.author?.name?.label || "Unknown";
       const version = review["im:version"]?.label || "";
-      
       const dateObj = review._dateObj;
-      const displayDate = dateObj.toLocaleDateString("en-US", { 
-        year: 'numeric', month: 'short', day: 'numeric' 
-      });
-
-      const monthYearStr = dateObj.toLocaleDateString("en-US", { 
-        month: 'long', year: 'numeric' 
-      });
+      const displayDate = dateObj.toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' });
+      const monthYearStr = dateObj.toLocaleDateString("en-US", { month: 'long', year: 'numeric' });
 
       if (monthYearStr !== lastMonthYear) {
         const header = document.createElement("div");
         header.className = "month-header";
         header.textContent = monthYearStr;
         reviewsContainer.appendChild(header);
-        
         lastMonthYear = monthYearStr;
       }
 
       const div = document.createElement("div");
       div.className = "review";
-      
       div.innerHTML = `
         <div class="review-header">
           <div class="stars">${"★".repeat(rating)}${"☆".repeat(5 - rating)}</div>
@@ -342,7 +349,6 @@
           ${version ? `<span>v${version}</span>` : ''}
         </div>
       `;
-
       reviewsContainer.appendChild(div);
     });
   }
