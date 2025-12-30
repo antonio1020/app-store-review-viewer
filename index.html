@@ -99,42 +99,7 @@
       button { padding: 12px; }
     }
 
-    /* 5. App Metadata Card */
-    .app-info {
-      background: var(--bg-card);
-      border-radius: var(--border-radius);
-      padding: 24px;
-      margin-bottom: 32px;
-      box-shadow: var(--shadow-md);
-      display: none; /* Hidden by default */
-      align-items: center;
-      gap: 20px;
-      animation: fadeIn 0.4s ease-out;
-    }
-    
-    .app-info.visible { display: flex; }
-
-    .app-icon {
-      width: 88px;
-      height: 88px;
-      border-radius: 20px;
-      border: 1px solid rgba(0,0,0,0.1);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .app-details h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    .app-meta {
-      margin-top: 4px;
-      color: var(--text-muted);
-      font-size: 15px;
-    }
-
-    /* 6. Review Cards */
+    /* 5. Review Cards */
     .status {
       font-size: 14px;
       font-weight: 600;
@@ -214,7 +179,8 @@
       id="appInput"
       type="text"
       placeholder="Paste App Store link (e.g. apple.com/app/id12345)"
-    />
+      autofocus
+      />
 
     <select id="countryInput">
       <option value="us">🇺🇸 USA</option>
@@ -223,6 +189,7 @@
       <option value="au">🇦🇺 Australia</option>
       <option value="de">🇩🇪 Germany</option>
       <option value="fr">🇫🇷 France</option>
+      <option value="it">🇮🇹 Italy</option>
       <option value="jp">🇯🇵 Japan</option>
       <option value="dk">🇩🇰 Denmark</option>
     </select>
@@ -231,7 +198,6 @@
   </div>
 
   <div id="status" class="status"></div>
-  <div id="appInfo" class="app-info"></div>
   <div id="reviews"></div>
 </div>
 
@@ -241,7 +207,6 @@
   const countryInput = document.getElementById("countryInput");
   const reviewsContainer = document.getElementById("reviews");
   const statusEl = document.getElementById("status");
-  const appInfoEl = document.getElementById("appInfo");
 
   function handleFetch() {
     const rawInput = appInput.value.trim();
@@ -256,7 +221,6 @@
 
     // Reset UI
     reviewsContainer.innerHTML = "";
-    appInfoEl.classList.remove("visible");
     statusEl.style.color = "var(--text-muted)";
     statusEl.textContent = "Fetching reviews...";
     fetchButton.disabled = true;
@@ -278,7 +242,6 @@
 
   async function fetchAllPages(appId, country) {
     let allReviews = [];
-    let appData = null;
 
     // Fetching up to 5 pages (250 reviews) to keep it snappy, 
     // increase loop limit if needed.
@@ -292,10 +255,6 @@
         if (!data.feed || !data.feed.entry) break;
 
         let entries = data.feed.entry;
-        if (page === 1) {
-          appData = entries[0];
-          entries = entries.slice(1);
-        }
 
         if (entries.length === 0) break;
         allReviews.push(...entries);
@@ -309,37 +268,14 @@
     fetchButton.disabled = false;
     fetchButton.textContent = "Get Reviews";
 
-    if (allReviews.length === 0 && !appData) {
+    if (allReviews.length === 0) {
       statusEl.textContent = "No reviews found or invalid ID.";
       return;
     }
 
     statusEl.textContent = `${allReviews.length} Reviews Found`;
     
-    if (appData) renderAppInfo(appData);
     renderReviews(allReviews);
-  }
-
-  function renderAppInfo(appData) {
-    const appName = appData.title?.label || "Unknown App";
-    // Clean up artist name (sometimes it includes copyright info)
-    const artist = appData.artist?.label || "";
-    // Get the highest res icon available
-    const images = appData["im:image"];
-    const icon = images ? images[images.length - 1].label : "";
-    const category = appData.category?.attributes?.label || "";
-
-    appInfoEl.innerHTML = `
-      ${icon ? `<img src="${icon}" alt="${appName}" class="app-icon" />` : ''}
-      <div class="app-details">
-        <h2>${appName}</h2>
-        <div class="app-meta">
-          <span>${artist}</span>
-          ${category ? ` • <span>${category}</span>` : ''}
-        </div>
-      </div>
-    `;
-    appInfoEl.classList.add("visible");
   }
 
   function renderReviews(reviews) {
