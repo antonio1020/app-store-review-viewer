@@ -5,6 +5,12 @@
   <title>App Store Review Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- iOS Home Screen Icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
   <style>
     :root {
       --bg-body: #f4f5f7;
@@ -203,8 +209,10 @@
 
 <body>
 <div class="container">
-  <h1>App Store Review Viewer</h1>
-
+  <h1 class="title">
+    <img src="logo.png" alt="" class="title-icon">
+    App Store Review Viewer
+  </h1>
   <div class="controls">
     <div class="input-wrapper">
       <input id="appInput" type="text" placeholder="Paste App Store link (e.g. apple.com/app/id12345)" autofocus />
