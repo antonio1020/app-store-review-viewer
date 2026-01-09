@@ -307,7 +307,14 @@ async function fetchAllPages(appId, country) {
 }
 
 function handleFetch(){
-  const rawInput=appInput.value.trim();
+  let rawInput=appInput.value.trim();
+  
+  // Extract everything before the first space
+  const spaceIndex = rawInput.indexOf(' ');
+  if (spaceIndex !== -1) {
+    rawInput = rawInput.substring(0, spaceIndex);
+  }
+  
   const country=countryInput.value;
   const appId=extractAppId(rawInput);
   if(!appId){ statusEl.textContent="Please enter a valid App Store URL or ID."; statusEl.style.color="#ef4444"; return; }
