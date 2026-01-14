@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>App Store Developer Tracker</title>
+  <title>App Store Review Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- iOS Home Screen Icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
   <style>
     :root {
@@ -11,14 +17,16 @@
       --bg-card: #ffffff;
       --text-main: #111827;
       --text-muted: #6b7280;
-      --primary: #6963CA;
-      --primary-hover: #5b55b5;
-      --border-radius: 14px;
+      --primary: #ff5924;
+      --primary-hover: #e64d1f;
+      --border-radius: 12px;
     }
 
     * { box-sizing: border-box; }
-
-    html { scrollbar-gutter: stable; }
+    
+    html {
+      scrollbar-gutter: stable;
+    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -29,51 +37,85 @@
       line-height: 1.5;
     }
 
-    /* Updated Container */
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
+    .container { max-width: 800px; margin: 0 auto; }
 
     h1 {
       font-family: Georgia, 'Times New Roman', Times, serif;
       font-size: 24px;
       font-weight: 400;
       letter-spacing: -0.025em;
-      margin: 0 0 16px 0;
+      margin: 0 0 12px 0;
       color: #344257;
     }
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .title-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
 
-    /* Controls */
     .controls {
       display: grid;
       grid-template-columns: 1fr auto auto;
       gap: 12px;
+      margin-bottom: 48px;
       background: var(--bg-card);
       padding: 8px;
       border-radius: 16px;
-      margin-bottom: 32px;
+      border: none;
     }
 
-    input, button {
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .input-wrapper input { width: 100%; padding-right: 40px; }
+
+    #clearButton {
+      position: absolute;
+      right: 12px;
+      width: auto;
+      height: auto;
+      background: none;
+      color: #6b7280;
+      border-radius: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
       font-size: 16px;
-      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      user-select: none;
+      line-height: 1;
+    }
+
+    #clearButton:hover { color: #374151; }
+    #clearButton.show { display: flex; }
+
+    input, select, button {
+      font-size: 16px;
       border: 1px solid transparent;
+      border-radius: 8px;
       outline: none;
       transition: all 0.2s;
     }
 
-    input {
+    input, select {
       background: #f9fafb;
       padding: 12px 16px;
-      font-weight: 500;
       color: var(--text-main);
+      font-weight: 500;
     }
 
-    input:focus {
-      background: #fff;
-      box-shadow: 0 0 0 2px var(--primary);
-    }
+    input:focus { background: #fff; box-shadow: 0 0 0 2px var(--primary); }
 
     button {
       background-color: var(--primary);
@@ -81,376 +123,272 @@
       font-weight: 500;
       padding: 0 24px;
       cursor: pointer;
-      min-width: 120px;
+      min-width: 140px; 
+      transition: transform 0.1s ease-in-out, background-color 0.2s; 
     }
 
-    button:hover {
-      background-color: var(--primary-hover);
+    button:hover { background-color: var(--primary-hover); }
+    button:active { transform: scale(0.97); }
+
+    .copy-btn:active {
+      transform: none;
     }
 
-    /* Info */
-    .info {
-      font-size: 13px;
+    @media (max-width: 600px) {
+      .controls { grid-template-columns: 1fr; padding: 16px; }
+      .controls input, .controls select, .controls button {
+        height: 44px;
+      }
+      .controls input, .controls select { padding: 0 16px; }
+      .controls button { padding: 0 12px; min-width: 100%; }
+    }
+
+    /* Status + Copy Button Container */
+    .status-container {
+      display: flex;
+      flex-wrap: wrap;       /* Allows wrapping */
+      gap: 16px;             /* Space between items when side-by-side */
+      justify-content: center; /* Centers items when they wrap */
+      align-items: center;
+      width: 100%;
+      padding-bottom: 8px;
+      margin-bottom: 36px;
+    }
+    
+    .status-container.has-reviews { 
+      border-bottom: 1px solid #d1d5db; 
+    }
+    
+    .status {
+      font-size: 14px;
       font-weight: 600;
       color: #344257;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 24px;
+      
+      /* Key Changes */
+      flex: 1 1 auto;   /* Grows to fill space, but has a basis that triggers wrap */
+      text-align: left;  /* Default to left */
+      min-width: fit-content;
     }
-
-    /* Chips */
-    .chips {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 32px;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      color: #374151;
-    }
-
-    .chip.active {
-      background: var(--primary);
-      color: white;
-    }
-
-    .chip .remove {
-      opacity: 0.6;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .chip .remove:hover {
-      opacity: 1;
-    }
-
-    /* App list (Updated to List Layout) */
-    #apps {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .app {
-      background: var(--bg-card);
-      border-radius: var(--border-radius);
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    .header {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .header img {
-      width: 64px;
-      height: 64px;
-      border-radius: 20%;
-      flex-shrink: 0;
-    }
-
-    .header strong {
-      font-size: 17px;
-      font-weight: 600;
-      color: #111827;
-    }
-
-    .header small {
-      color: #6b7280;
-      font-size: 14px;
-    }
-
-    .meta {
-      font-size: 14px;
-      color: #374151;
-      margin-top: 14px;
-      display: flex;
-      gap: 24px;
-      border-top: 1px solid #f3f4f6;
-      padding-top: 12px;
-    }
-
-    .actions {
-      margin-top: 16px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .actions button {
-      background: #f3f4f6;
+    
+    .copy-btn {
+      background: none;
       border: none;
       color: var(--primary);
       font-weight: 600;
-      padding: 8px 16px;
       cursor: pointer;
-      min-width: auto;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    
+      /* Key Changes */
+      flex: 0 0 auto;    /* "Hug" mode */
+      white-space: nowrap;
+      text-align: right; /* Aligns text within the button if needed */
     }
+    .copy-btn:hover { background-color: #e5e7eb; color: var(--primary); }
 
-    .actions button:hover {
-      background: #e5e7eb;
-      border-radius: 8px;
+    .month-header {
+      font-size: 14px;
+      font-weight: 500;
+      /* color: var(--text-muted); */
+      color: #9ca3af;
+      margin: 32px 0 12px 0;
+      /* text-transform: uppercase; */
     }
+    .month-header:first-of-type { margin-top: 10px; }
 
-    @media (max-width: 600px) {
-      .controls {
-        grid-template-columns: 1fr;
-        padding: 16px;
-      }
-
-      button {
-        min-width: 100%;
-        height: 44px;
-      }
-
-      .meta {
-        flex-direction: column;
-        gap: 4px;
-      }
+    .review {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      margin-bottom: 16px;
+      border: none;
     }
+    .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .stars { color: #FF7F57; font-size: 18px; letter-spacing: 2px; }
+    .review-date { font-size: 13px; color: #9ca3af; }
+    .review-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827; }
+    .review-content { color: #374151; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+    .review-footer { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #9ca3af; display: flex; gap: 12px; }
   </style>
 </head>
 
 <body>
-
-  <div class="container">
-    <h1>App Store Developer Tracker</h1>
-
-    <div class="controls">
-      <input id="devInput" placeholder="Add developer name" />
-      <button onclick="addDeveloper()">Add</button>
-      <button onclick="refreshAll()">Refresh All</button>
+<div class="container">
+  <h1 class="title">
+    <!-- <img src="orangehexagon.png" alt="" class="title-icon"> -->
+    View Reviews
+  </h1>
+  <div class="controls">
+    <div class="input-wrapper">
+      <input id="appInput" type="text" placeholder="Paste App Store link (e.g. apple.com/app/id12345)" autofocus />
+      <span id="clearButton" title="Clear text">✕</span>
     </div>
 
-    <div class="info" id="info"></div>
-    <div class="chips" id="chips"></div>
-    <div id="apps"></div>
+    <select id="countryInput">
+      <option value="us">🇺🇸 USA</option>
+      <option value="gb">🇬🇧 UK</option>
+      <option value="ca">🇨🇦 Canada</option>
+      <option value="au">🇦🇺 Australia</option>
+      <option value="de">🇩🇪 Germany</option>
+      <option value="fr">🇫🇷 France</option>
+      <option value="it">🇮🇹 Italy</option>
+      <option value="jp">🇯🇵 Japan</option>
+      <option value="dk">🇩🇰 Denmark</option>
+    </select>
+
+    <button id="fetchButton">Get Reviews</button>
   </div>
 
+  <div id="status-container" class="status-container">
+    <div id="status" class="status"></div>
+    <button id="copyAll" class="copy-btn" style="display:none;">Copy All Reviews</button>
+  </div>
+
+  <div id="reviews"></div>
+</div>
+
 <script>
-  const STORAGE_KEY = "appTrackerData";
-  const devInput = document.getElementById('devInput');
+const fetchButton = document.getElementById("fetchButton");
+const appInput = document.getElementById("appInput");
+const clearButton = document.getElementById("clearButton");
+const countryInput = document.getElementById("countryInput");
+const reviewsContainer = document.getElementById("reviews");
+const statusEl = document.getElementById("status");
+const statusContainer = document.getElementById("status-container");
+const copyAllBtn = document.getElementById("copyAll");
 
-  let state = {
-    developers: [],
-    apps: [],
-    lastRefreshed: null,
-    activeDeveloper: "ALL"
-  };
+appInput.addEventListener("input", () => { clearButton.classList.toggle("show", appInput.value.length > 0); });
+clearButton.addEventListener("click", () => { appInput.value=""; clearButton.classList.remove("show"); appInput.focus(); });
 
-  // Handle Enter Key
-  devInput.addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      addDeveloper();
+fetchButton.addEventListener("click", handleFetch);
+appInput.addEventListener("keypress", e => { if(e.key==="Enter") handleFetch(); });
+
+function extractAppId(input) {
+  if(/^\d+$/.test(input)) return input;
+  const match=input.match(/id(\d+)/);
+  return match?match[1]:null;
+}
+
+async function fetchAllPages(appId, country) {
+  let allReviews=[];
+  for(let page=1;page<=5;page++){
+    const url=`https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
+    try{
+      const response=await fetch(url);
+      const data=await response.json();
+      if(!data.feed||!data.feed.entry) break;
+      let entries=data.feed.entry;
+      if(!Array.isArray(entries)) entries=[entries];
+      if(entries.length===0) break;
+      allReviews.push(...entries);
+    }catch(e){ console.error(e); break; }
+  }
+
+  fetchButton.disabled=false;
+  fetchButton.textContent="Get Reviews";
+
+  if(allReviews.length===0){
+    statusEl.textContent="No reviews found or invalid ID.";
+    statusContainer.classList.remove("has-reviews");
+    copyAllBtn.style.display="none";
+    return;
+  }
+
+  statusEl.textContent=`${allReviews.length} Reviews`;
+  statusContainer.classList.add("has-reviews");
+  copyAllBtn.style.display="inline-block";
+  renderReviews(allReviews);
+}
+
+function handleFetch(){
+  let rawInput=appInput.value.trim();
+  
+  // Extract everything before the first space
+  const spaceIndex = rawInput.indexOf(' ');
+  if (spaceIndex !== -1) {
+    rawInput = rawInput.substring(0, spaceIndex);
+  }
+  
+  const country=countryInput.value;
+  const appId=extractAppId(rawInput);
+  if(!appId){ statusEl.textContent="Please enter a valid App Store URL or ID."; statusEl.style.color="#ef4444"; return; }
+  reviewsContainer.innerHTML="";
+  statusEl.style.color="#344257";
+  statusEl.textContent="Fetching reviews...";
+  statusContainer.classList.remove("has-reviews");
+  copyAllBtn.style.display="none";
+  fetchButton.disabled=true;
+  fetchButton.textContent="Loading...";
+  fetchAllPages(appId,country);
+}
+
+function renderReviews(reviews){
+  const processedReviews=reviews.map(r=>{
+    const dateStr=r.updated?.label||"";
+    const dateObj=dateStr?new Date(dateStr):new Date(0);
+    return {...r,_dateObj:dateObj};
+  });
+  processedReviews.sort((a,b)=>b._dateObj-a._dateObj);
+
+  let lastMonthYear="";
+  processedReviews.forEach(r=>{
+    const rating=Number(r["im:rating"]?.label||0);
+    const title=r.title?.label||"";
+    const content=r.content?.label||"";
+    const author=r.author?.name?.label||"Unknown";
+    const version=r["im:version"]?.label||"";
+    const dateObj=r._dateObj;
+    const displayDate=dateObj.toLocaleDateString("en-US",{year:'numeric',month:'short',day:'numeric'});
+    const monthYearStr=dateObj.toLocaleDateString("en-US",{month:'long',year:'numeric'});
+
+    if(monthYearStr!==lastMonthYear){
+      const header=document.createElement("div");
+      header.className="month-header";
+      header.textContent=monthYearStr;
+      reviewsContainer.appendChild(header);
+      lastMonthYear=monthYearStr;
     }
+
+    const div=document.createElement("div");
+    div.className="review";
+    div.innerHTML=`
+      <div class="review-header">
+        <div class="stars">${"★".repeat(rating)}${"☆".repeat(5-rating)}</div>
+        <div class="review-date">${displayDate}</div>
+      </div>
+      <div class="review-title">${title}</div>
+      <div class="review-content">${content}</div>
+      <div class="review-footer">
+        <span>${author}</span>
+        ${version?`<span>v${version}</span>`:""}
+      </div>
+    `;
+    reviewsContainer.appendChild(div);
+  });
+}
+
+// Copy all reviews
+copyAllBtn.addEventListener("click", () => {
+  const reviews = document.querySelectorAll(".review");
+  if(reviews.length===0) return;
+
+  let textToCopy="";
+  reviews.forEach(r=>{
+    const title=r.querySelector(".review-title")?.textContent||"";
+    const content=r.querySelector(".review-content")?.textContent||"";
+    textToCopy+=title+"\n"+content+"\n\n";
   });
 
-  // ---------- Persistence ----------
-  function loadState() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) state = JSON.parse(saved);
-  }
-
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  // ---------- Developer Management ----------
-  function addDeveloper() {
-    const name = devInput.value.trim();
-    if (!name) return;
-
-    if (!state.developers.find(d => d.name.toLowerCase() === name.toLowerCase())) {
-      state.developers.push({ name });
-      saveState();
-      render();
-    }
-
-    devInput.value = "";
-  }
-
-  function removeDeveloper(name) {
-    state.developers = state.developers.filter(d => d.name !== name);
-    state.apps = state.apps.filter(app => app.developer !== name);
-
-    if (state.activeDeveloper === name) {
-      state.activeDeveloper = "ALL";
-    }
-
-    saveState();
-    render();
-  }
-
-  // ---------- Fetching ----------
-  async function fetchAppsForDeveloper(devName) {
-    const url =
-      "https://itunes.apple.com/search?" +
-      "term=" + encodeURIComponent(devName) +
-      "&entity=software&limit=50";
-
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-
-      return data.results
-        .filter(a => a.artistName.toLowerCase() === devName.toLowerCase())
-        .map(a => ({
-          id: a.trackId,
-          name: a.trackName,
-          icon: a.artworkUrl100,
-          url: a.trackViewUrl,
-          developer: devName,
-          v1: a.releaseDate,
-          latest: a.currentVersionReleaseDate,
-          rating: a.averageUserRating || null,
-          ratingCount: a.userRatingCount || 0
-        }));
-    } catch (e) {
-      console.error("Fetch failed", e);
-      return [];
-    }
-  }
-
-  async function refreshAll() {
-    const btn = document.querySelector('button[onclick="refreshAll()"]');
-    btn.textContent = "Updating...";
-    
-    state.apps = [];
-
-    for (const dev of state.developers) {
-      const apps = await fetchAppsForDeveloper(dev.name);
-      state.apps.push(...apps);
-    }
-
-    state.lastRefreshed = new Date().toISOString();
-
-    state.apps.sort((a, b) =>
-      new Date(b.latest || 0) - new Date(a.latest || 0)
-    );
-
-    saveState();
-    render();
-    btn.textContent = "Refresh All";
-  }
-
-  // ---------- Rendering ----------
-  function render() {
-    renderInfo();
-    renderChips();
-    renderApps();
-  }
-
-  function renderInfo() {
-    const infoEl = document.getElementById('info');
-    infoEl.textContent = state.lastRefreshed
-      ? `Last refreshed: ${new Date(state.lastRefreshed).toLocaleString()}`
-      : "Not refreshed yet";
-  }
-
-  function renderChips() {
-    const chipsEl = document.getElementById('chips');
-    chipsEl.innerHTML = "";
-
-    // ALL chip
-    const allChip = document.createElement("div");
-    allChip.className =
-      "chip" + (state.activeDeveloper === "ALL" ? " active" : "");
-    allChip.textContent = "ALL";
-    allChip.onclick = () => {
-      state.activeDeveloper = "ALL";
-      render();
-    };
-    chipsEl.appendChild(allChip);
-
-    // Developer chips
-    state.developers.forEach(dev => {
-      const chip = document.createElement("div");
-      chip.className =
-        "chip" + (state.activeDeveloper === dev.name ? " active" : "");
-
-      chip.onclick = () => {
-        state.activeDeveloper = dev.name;
-        render();
-      };
-
-      const label = document.createElement("span");
-      label.textContent = dev.name;
-
-      const remove = document.createElement("span");
-      remove.textContent = "×";
-      remove.className = "remove";
-      remove.onclick = e => {
-        e.stopPropagation();
-        removeDeveloper(dev.name);
-      };
-
-      chip.appendChild(label);
-      chip.appendChild(remove);
-      chipsEl.appendChild(chip);
-    });
-  }
-
-  function renderApps() {
-    const appsEl = document.getElementById('apps');
-    appsEl.innerHTML = "";
-
-    const filtered = state.apps.filter(app =>
-      state.activeDeveloper === "ALL" ||
-      app.developer === state.activeDeveloper
-    );
-
-    if (filtered.length === 0) {
-      appsEl.innerHTML = `<div style="text-align:center; padding: 40px; color: #6b7280;">No apps found. Add a developer and hit Refresh.</div>`;
-      return;
-    }
-
-    filtered.forEach(app => {
-      const div = document.createElement("div");
-      div.className = "app";
-
-      div.innerHTML = `
-        <div class="header">
-          <img src="${app.icon}">
-          <div>
-            <strong>${app.name}</strong><br>
-            <small>${app.developer}</small>
-          </div>
-        </div>
-
-        <div class="meta">
-          <span><strong>v1:</strong> ${app.v1 ? new Date(app.v1).toLocaleDateString() : "—"}</span>
-          <span><strong>Latest:</strong> ${app.latest ? new Date(app.latest).toLocaleDateString() : "—"}</span>
-          <span><strong>Rating:</strong> ${app.rating ?? "—"} (${app.ratingCount.toLocaleString()})</span>
-        </div>
-
-        <div class="actions">
-          <button onclick="window.open('${app.url}')">View on Store</button>
-          <button onclick="navigator.clipboard.writeText('${app.url}')">
-            Copy Link
-          </button>
-        </div>
-      `;
-
-      appsEl.appendChild(div);
-    });
-  }
-
-  // ---------- Init ----------
-  loadState();
-  render();
+  navigator.clipboard.writeText(textToCopy)
+    .then(()=>alert("The content of all reviews has been copied to the clipboard!"))
+    .catch(err=>console.error("Failed to copy text:",err));
+});
 </script>
-
 </body>
 </html>
