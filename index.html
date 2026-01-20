@@ -5,10 +5,8 @@
   <title>App Store Review Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png">
 
-  <!-- iOS Home Screen Icon -->
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
   <style>
@@ -221,7 +219,6 @@
 <body>
 <div class="container">
   <h1 class="title">
-    <!-- <img src="orangehexagon.png" alt="" class="title-icon"> -->
     View Reviews
   </h1>
   <div class="controls">
@@ -231,6 +228,7 @@
     </div>
 
     <select id="countryInput">
+      <option value="all_en">🌎 All English</option>
       <option value="us">🇺🇸 USA</option>
       <option value="gb">🇬🇧 UK</option>
       <option value="ca">🇨🇦 Canada</option>
@@ -275,39 +273,33 @@ function extractAppId(input) {
   return match?match[1]:null;
 }
 
-async function fetchAllPages(appId, country) {
-  let allReviews=[];
-  for(let page=1;page<=5;page++){
+// Helper function to fetch 5 pages for a specific country
+async function fetchReviewsForCountry(appId, country) {
+  let countryReviews = [];
+  for(let page=1; page<=5; page++){
     const url=`https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${appId}/sortby=mostrecent/json`;
     try{
-      const response=await fetch(url);
-      const data=await response.json();
-      if(!data.feed||!data.feed.entry) break;
-      let entries=data.feed.entry;
+      const response = await fetch(url);
+      const data = await response.json();
+      if(!data.feed || !data.feed.entry) break;
+      let entries = data.feed.entry;
       if(!Array.isArray(entries)) entries=[entries];
       if(entries.length===0) break;
-      allReviews.push(...entries);
-    }catch(e){ console.error(e); break; }
+      
+      // Optionally tag them with the source country if you want to display it later
+      // entries.forEach(e => e._country = country);
+      
+      countryReviews.push(...entries);
+    } catch(e){ 
+      console.warn(`Failed to fetch ${country} page ${page}`, e);
+      break; 
+    }
   }
-
-  fetchButton.disabled=false;
-  fetchButton.textContent="Get Reviews";
-
-  if(allReviews.length===0){
-    statusEl.textContent="No reviews found or invalid ID.";
-    statusContainer.classList.remove("has-reviews");
-    copyAllBtn.style.display="none";
-    return;
-  }
-
-  statusEl.textContent=`${allReviews.length} Reviews`;
-  statusContainer.classList.add("has-reviews");
-  copyAllBtn.style.display="inline-block";
-  renderReviews(allReviews);
+  return countryReviews;
 }
 
-function handleFetch(){
-  let rawInput=appInput.value.trim();
+async function handleFetch(){
+  let rawInput = appInput.value.trim();
   
   // Extract everything before the first space
   const spaceIndex = rawInput.indexOf(' ');
@@ -315,9 +307,16 @@ function handleFetch(){
     rawInput = rawInput.substring(0, spaceIndex);
   }
   
-  const country=countryInput.value;
-  const appId=extractAppId(rawInput);
-  if(!appId){ statusEl.textContent="Please enter a valid App Store URL or ID."; statusEl.style.color="#ef4444"; return; }
+  const countryValue = countryInput.value;
+  const appId = extractAppId(rawInput);
+  
+  if(!appId){ 
+    statusEl.textContent="Please enter a valid App Store URL or ID."; 
+    statusEl.style.color="#ef4444"; 
+    return; 
+  }
+
+  // Reset UI
   reviewsContainer.innerHTML="";
   statusEl.style.color="#344257";
   statusEl.textContent="Fetching reviews...";
@@ -325,38 +324,82 @@ function handleFetch(){
   copyAllBtn.style.display="none";
   fetchButton.disabled=true;
   fetchButton.textContent="Loading...";
-  fetchAllPages(appId,country);
+
+  let allReviews = [];
+
+  try {
+    if (countryValue === 'all_en') {
+      // Fetch US, UK, CA, AU in parallel
+      const countries = ['us', 'gb', 'ca', 'au'];
+      statusEl.textContent = "Fetching reviews from US, UK, CA, AU...";
+      
+      const results = await Promise.all(
+        countries.map(c => fetchReviewsForCountry(appId, c))
+      );
+      
+      // Combine all results into one array
+      allReviews = results.flat();
+      
+    } else {
+      // Fetch single country
+      allReviews = await fetchReviewsForCountry(appId, countryValue);
+    }
+
+    // Update UI after fetching
+    fetchButton.disabled = false;
+    fetchButton.textContent = "Get Reviews";
+
+    if(allReviews.length === 0){
+      statusEl.textContent = "No reviews found or invalid ID.";
+      statusContainer.classList.remove("has-reviews");
+      copyAllBtn.style.display = "none";
+      return;
+    }
+
+    statusEl.textContent = `${allReviews.length} Reviews`;
+    statusContainer.classList.add("has-reviews");
+    copyAllBtn.style.display = "inline-block";
+    renderReviews(allReviews);
+
+  } catch (error) {
+    console.error(error);
+    fetchButton.disabled = false;
+    fetchButton.textContent = "Get Reviews";
+    statusEl.textContent = "An error occurred while fetching reviews.";
+  }
 }
 
 function renderReviews(reviews){
-  const processedReviews=reviews.map(r=>{
-    const dateStr=r.updated?.label||"";
-    const dateObj=dateStr?new Date(dateStr):new Date(0);
-    return {...r,_dateObj:dateObj};
+  const processedReviews = reviews.map(r => {
+    const dateStr = r.updated?.label || "";
+    const dateObj = dateStr ? new Date(dateStr) : new Date(0);
+    return {...r, _dateObj: dateObj};
   });
-  processedReviews.sort((a,b)=>b._dateObj-a._dateObj);
+  
+  // Sort by date descending (newest first)
+  processedReviews.sort((a,b) => b._dateObj - a._dateObj);
 
-  let lastMonthYear="";
-  processedReviews.forEach(r=>{
-    const rating=Number(r["im:rating"]?.label||0);
-    const title=r.title?.label||"";
-    const content=r.content?.label||"";
-    const author=r.author?.name?.label||"Unknown";
-    const version=r["im:version"]?.label||"";
-    const dateObj=r._dateObj;
-    const displayDate=dateObj.toLocaleDateString("en-US",{year:'numeric',month:'short',day:'numeric'});
-    const monthYearStr=dateObj.toLocaleDateString("en-US",{month:'long',year:'numeric'});
+  let lastMonthYear = "";
+  processedReviews.forEach(r => {
+    const rating = Number(r["im:rating"]?.label || 0);
+    const title = r.title?.label || "";
+    const content = r.content?.label || "";
+    const author = r.author?.name?.label || "Unknown";
+    const version = r["im:version"]?.label || "";
+    const dateObj = r._dateObj;
+    const displayDate = dateObj.toLocaleDateString("en-US", {year:'numeric', month:'short', day:'numeric'});
+    const monthYearStr = dateObj.toLocaleDateString("en-US", {month:'long', year:'numeric'});
 
-    if(monthYearStr!==lastMonthYear){
-      const header=document.createElement("div");
-      header.className="month-header";
-      header.textContent=monthYearStr;
+    if(monthYearStr !== lastMonthYear){
+      const header = document.createElement("div");
+      header.className = "month-header";
+      header.textContent = monthYearStr;
       reviewsContainer.appendChild(header);
-      lastMonthYear=monthYearStr;
+      lastMonthYear = monthYearStr;
     }
 
-    const div=document.createElement("div");
-    div.className="review";
+    const div = document.createElement("div");
+    div.className = "review";
     div.innerHTML=`
       <div class="review-header">
         <div class="stars">${"★".repeat(rating)}${"☆".repeat(5-rating)}</div>
@@ -366,7 +409,7 @@ function renderReviews(reviews){
       <div class="review-content">${content}</div>
       <div class="review-footer">
         <span>${author}</span>
-        ${version?`<span>v${version}</span>`:""}
+        ${version ? `<span>v${version}</span>` : ""}
       </div>
     `;
     reviewsContainer.appendChild(div);
